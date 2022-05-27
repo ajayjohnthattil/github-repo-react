@@ -3,20 +3,14 @@ import './styles.css';
 
 
 
-
-
-
-
-
 function App() {
 
   const [repos, setRepos] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+ // const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const [username, setUsername] = useState()
-
- // username = document.getElementById("username").value;
+  const [includeForks, setIncludeForks] = useState(false)
 
 
   useEffect(() =>{
@@ -30,28 +24,30 @@ function App() {
       }
   },[username]);
 
+  useEffect(()=>{
+
+    if(includeForks===false && repos ){
+      setRepos(repos.filter((a) => !a.fork))
+   }
+   else {
+     fetchData();
+   }
+  },[includeForks]);
+
   const fetchData = () => {
-    // var username = document.getElementById("username").value;
-    console.log(username)
     fetch(`https://api.github.com/users/${username}/repos`)
       .then(res => res.json())
       .then(
         (result) => {
-          result.sort((a, b) => b.size - a.size)
-          setRepos(result)
+
+          result.sort((a, b) => b.size - a.size)          
+          if(includeForks===false) setRepos(result.filter((a) => !a.fork))
+          else setRepos(result)
           setError(null)
-          console.log(result)
-          console.log(repos)
+
         })
         .catch(error=>setError(error))
         
-        
-        //,
-
-        // (error) => {
-        //   setError(error)
-        //   console.log(error);
-        //   });
         }
 
   return (
@@ -60,7 +56,7 @@ function App() {
         <label htmlFor="username">Github username: </label>
         <input id="username" type="text" onChange={event => setUsername(event.target.value)} />
         <label htmlFor="fork">Include forks: </label>
-        <input id="fork" type="checkbox" />
+        <input id="fork" value={includeForks} type="checkbox" onChange={event => setIncludeForks(!includeForks)} />
         <button id="subButton"  onClick={fetchData}>Submit</button>
       </div>
       <section>
